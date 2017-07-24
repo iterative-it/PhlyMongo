@@ -20,8 +20,8 @@ class HydratingPaginatorAdapter extends PaginatorAdapter
     public function getItems($offset, $itemCountPerPage)
     {
         $composedCursor = $this->cursor->getCursor();
-        $composedCursor->skip($offset);
-        $composedCursor->limit($itemCountPerPage);
+        $this->cursor->skip($offset);
+        $this->cursor->limit($itemCountPerPage);
         return $this->cursor;
     }
 }

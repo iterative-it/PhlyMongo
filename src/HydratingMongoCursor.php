@@ -16,19 +16,18 @@ use Zend\Hydrator\Iterator\HydratingIteratorInterface;
 
 class HydratingMongoCursor implements Countable, Iterator, HydratingIteratorInterface
 {
-    private $count;
-    private $iterator = null;
-
     /**
      * @var HydratorInterface
      */
     protected $hydrator;
     protected $prototype;
+    protected $count;
+    protected $iterator = null;
 
     /**
      * HydratingMongoCursor constructor.
      * @param Manager $manager
-     * @param string $namespace
+     * @param $namespace
      * @param Query $query
      * @param HydratorInterface $hydrator
      * @param $prototype
@@ -39,44 +38,12 @@ class HydratingMongoCursor implements Countable, Iterator, HydratingIteratorInte
         $this->setPrototype($prototype);
 
         $cursor = $manager->executeQuery($namespace, $query);
+        $cursor->setTypeMap(['root' => 'array', '__pclass' => get_class($prototype), 'array' => 'array']);
+
         $array = $cursor->toArray();
+
         $this->count = count($array);
         $this->iterator = new \ArrayIterator($array);
-    }
-
-    public function count()
-    {
-        return $this->count();
-    }
-
-    public function current()
-    {
-        $result = $this->iterator->current();
-        if (!is_array($result)) {
-            return $result;
-        }
-
-        return $this->hydrator->hydrate($result, clone $this->prototype);
-    }
-
-    public function key()
-    {
-        return $this->iterator->key();
-    }
-
-    public function next()
-    {
-        $this->iterator->next();
-    }
-
-    public function rewind()
-    {
-        $this->iterator->rewind();
-    }
-
-    public function valid()
-    {
-        return $this->iterator->valid();
     }
 
     public function getPrototype()
@@ -116,5 +83,40 @@ class HydratingMongoCursor implements Countable, Iterator, HydratingIteratorInte
     public function setHydrator(HydratorInterface $hydrator)
     {
         $this->hydrator = $hydrator;
+    }
+
+    public function count()
+    {
+        return $this->count;
+    }
+
+    public function current()
+    {
+        $result = $this->iterator->current();
+        if (!is_array($result)) {
+            return $result;
+        }
+
+        return $this->hydrator->hydrate($result, clone $this->prototype);
+    }
+
+    public function key()
+    {
+        return $this->iterator->key();
+    }
+
+    public function next()
+    {
+        $this->iterator->next();
+    }
+
+    public function rewind()
+    {
+        $this->iterator->rewind();
+    }
+
+    public function valid()
+    {
+        return $this->iterator->valid();
     }
 }

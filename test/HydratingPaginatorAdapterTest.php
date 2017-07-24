@@ -6,6 +6,7 @@
 
 namespace PhlyMongoTest;
 
+use MongoDB\Driver\Query;
 use PhlyMongo\HydratingMongoCursor;
 use PhlyMongo\HydratingPaginatorAdapter;
 use Zend\Stdlib\Hydrator\ObjectProperty;
@@ -17,8 +18,7 @@ class HydratingPaginatorAdapterTest extends AbstractTestCase
         parent::setUp();
         $this->prototype  = new TestAsset\Foo;
         $this->hydrator   = new ObjectProperty;
-        $this->rootCursor = $this->collection->find();
-        $this->cursor     = new HydratingMongoCursor($this->rootCursor, $this->hydrator, $this->prototype);
+        $this->cursor     = new HydratingMongoCursor($this->manager, $this->collection, new Query([]), $this->hydrator, $this->prototype);
         $this->adapter    = new HydratingPaginatorAdapter($this->cursor);
     }
 

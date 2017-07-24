@@ -6,27 +6,52 @@
 
 namespace PhlyMongo;
 
-use MongoCursor;
+use MongoDB\Collection;
+use MongoDB\Driver\Command;
+use MongoDB\Driver\Manager;
+use MongoDB\Driver\Query;
 use Zend\Paginator\Adapter\AdapterInterface;
 
 class PaginatorAdapter implements AdapterInterface
 {
-    protected $cursor;
+    /**
+     * @var Manager
+     */
+    protected $manager;
 
-    public function __construct(MongoCursor $cursor)
+    /**
+     * @var Collection
+     */
+    protected $collection;
+
+    /**
+     * @var array|object
+     */
+    protected $filter;
+
+    /**
+     * PaginatorAdapter constructor.
+     * @param Manager $manager
+     * @param Collection $collection
+     * @param array|object $filter The search filter.
+     */
+    public function __construct(Manager $manager, Collection $collection, $filter)
     {
-        $this->cursor = $cursor;
+        $this->manager = $manager;
+        $this->collection = $collection;
+        $this->filter = $filter;
     }
 
     public function count()
     {
-        return $this->cursor->count();
+        return $this->collection->count($this->filter);
     }
 
     public function getItems($offset, $itemCountPerPage)
     {
-        $this->cursor->skip($offset);
-        $this->cursor->limit($itemCountPerPage);
-        return $this->cursor;
+        $query = new Query($this->filter, ['skip' => $offset, 'limit' => $itemCountPerPage]);
+        $cursor = $this->manager->executeQuery($this->collection->getNamespace(), $query);
+        $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
+        return $cursor;
     }
 }

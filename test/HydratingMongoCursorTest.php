@@ -6,6 +6,8 @@
 
 namespace PhlyMongoTest;
 
+use MongoDB\BSON\ObjectID;
+use MongoDB\Driver\Query;
 use PhlyMongo\HydratingMongoCursor;
 use Zend\Stdlib\Hydrator\ObjectProperty;
 
@@ -41,36 +43,25 @@ class HydratingMongoCursorTest extends AbstractTestCase
 
     public function testConstructorRaisesExceptionOnInvalidPrototype()
     {
-        $rootCursor = $this->collection->find();
         $this->setExpectedException('InvalidArgumentException');
-        $cursor = new HydratingMongoCursor($rootCursor, $this->hydrator, []);
-    }
-
-    public function testRootCursorIsAccessibleAfterInstantiation()
-    {
-        $rootCursor = $this->collection->find();
-        $cursor = new HydratingMongoCursor($rootCursor, $this->hydrator, $this->prototype);
-        $this->assertSame($rootCursor, $cursor->getCursor());
+        $cursor = new HydratingMongoCursor($this->manager, $this->collection, new Query([]), $this->hydrator, []);
     }
 
     public function tetHydratorIsAccessibleAfterInstantiation()
     {
-        $rootCursor = $this->collection->find();
-        $cursor = new HydratingMongoCursor($rootCursor, $this->hydrator, $this->prototype);
+        $cursor = new HydratingMongoCursor($this->manager, $this->collection, new Query([]), $this->hydrator, $this->prototype);
         $this->assertSame($this->hydrator, $cursor->getHydrator());
     }
 
     public function tetPrototypeIsAccessibleAfterInstantiation()
     {
-        $rootCursor = $this->collection->find();
-        $cursor = new HydratingMongoCursor($rootCursor, $this->hydrator, $this->prototype);
+        $cursor = new HydratingMongoCursor($this->manager, $this->collection, new Query([]), $this->hydrator, $this->prototype);
         $this->assertSame($this->prototype, $cursor->getPrototype());
     }
 
     public function testCursorIsCountable()
     {
-        $rootCursor = $this->collection->find();
-        $cursor     = new HydratingMongoCursor($rootCursor, $this->hydrator, $this->prototype);
+        $cursor     = new HydratingMongoCursor($this->manager, $this->collection, new Query([]), $this->hydrator, $this->prototype);
 
         $rootCount = $this->collection->count();
         $testCount = count($cursor);
@@ -80,11 +71,10 @@ class HydratingMongoCursorTest extends AbstractTestCase
 
     public function testIterationReturnsClonesOfPrototype()
     {
-        $rootCursor = $this->collection->find();
-        $cursor = new HydratingMongoCursor($rootCursor, $this->hydrator, $this->prototype);
+        $cursor = new HydratingMongoCursor($this->manager, $this->collection, new Query([]), $this->hydrator, $this->prototype);
         foreach ($cursor as $item) {
             $this->assertInstanceOf('PhlyMongoTest\TestAsset\Foo', $item);
-            $this->assertInstanceOf('MongoId', $item->_id);
+            $this->assertInstanceOf(ObjectID::class, $item->_id);
             $this->assertFalse(empty($item->title));
             $this->assertContains($item->author, $this->authors);
             $this->assertContains($item->title, $item->content);

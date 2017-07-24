@@ -19,7 +19,7 @@ abstract class AbstractTestCase extends TestCase
     /**
      * @var MongoDB\Database
      */
-    protected $db;
+    protected $database;
 
     /**
      * @var MongoDB\Collection
@@ -45,12 +45,12 @@ abstract class AbstractTestCase extends TestCase
         $services   = Bootstrap::getServiceManager();
         $config     = $services->get('ApplicationConfig');
         $config     = $config['mongo'];
-        $manager     = new MongoDB\Driver\Manager($config['server'], $config['server_options']);
-        $db         = new MongoDB\Database($manager, $config['db']);
+        $manager    = new MongoDB\Driver\Manager($config['server'], $config['server_options']);
+        $database   = new MongoDB\Database($manager, $config['db']);
         $collection = new MongoDB\Collection($manager, $config['db'], $config['collection']);
 
         $this->manager    = $manager;
-        $this->db         = $db;
+        $this->database   = $database;
         $this->collection = $collection;
 
         $this->seedCollection();
@@ -74,7 +74,8 @@ abstract class AbstractTestCase extends TestCase
                 'author'  => $authors[$authorIndex],
                 'content' => str_repeat($title, $i + 1),
             ];
-            $this->collection->insertOne($data);
+            $result = $this->collection->insertOne($data);
+            $data['_id'] = $result->getInsertedId();
             $this->items[] = $data;
         }
     }

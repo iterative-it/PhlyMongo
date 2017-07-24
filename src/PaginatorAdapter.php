@@ -31,7 +31,7 @@ class PaginatorAdapter implements AdapterInterface
     /**
      * @var array
      */
-    private $queryOptions;
+    protected $queryOptions;
 
     /**
      * PaginatorAdapter constructor.
@@ -39,7 +39,7 @@ class PaginatorAdapter implements AdapterInterface
      * @param Collection $collection
      * @param array|object $filter The search filter.
      */
-    public function __construct(Manager $manager, Collection $collection, $filter, array $queryOptions = [])
+    public function __construct(Manager $manager, Collection $collection, $filter = [], array $queryOptions = [])
     {
         $this->manager = $manager;
         $this->collection = $collection;
@@ -55,6 +55,15 @@ class PaginatorAdapter implements AdapterInterface
     public function getItems($offset, $itemCountPerPage)
     {
         $queryOptions = array_merge($this->queryOptions, ['skip' => $offset, 'limit' => $itemCountPerPage]);
+        return $this->getCursor($queryOptions);
+    }
+
+    /**
+     * @param $queryOptions
+     * @return \MongoDB\Driver\Cursor
+     */
+    protected function getCursor($queryOptions)
+    {
         $query = new Query($this->filter, $queryOptions);
         $cursor = $this->manager->executeQuery($this->collection->getNamespace(), $query);
         $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);

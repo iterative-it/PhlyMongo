@@ -6,8 +6,20 @@
 
 namespace PhlyMongo;
 
-class RangedHydratingPaginatorAdapter extends RangedPaginatorAdapter
+use MongoDB\BSON\ObjectID;
+
+class RangedHydratingPaginatorAdapter extends HydratingPaginatorAdapter
 {
+    /**
+     * @var HydratingMongoCursor
+     */
+    protected $cursor;
+
+    /**
+     * @var mixed|ObjectID
+     */
+    protected $currentId;
+
     /**
      * Creates a range based hydrating adapter when using large collections
      *
@@ -15,11 +27,12 @@ class RangedHydratingPaginatorAdapter extends RangedPaginatorAdapter
      * a ranged based query will start from the current id.
      *
      * @param HydratingMongoCursor $cursor
-     * @param mixed|\MongoId $currentId
+     * @param mixed|ObjectID $currentId
      */
     public function __construct(HydratingMongoCursor $cursor, $currentId)
     {
-        $this->cursor    = $cursor;
+        parent::__construct($cursor);
+
         $this->currentId = $currentId;
     }
 
@@ -27,9 +40,8 @@ class RangedHydratingPaginatorAdapter extends RangedPaginatorAdapter
     {
         //offset is never used in range based
         //kept here to satisfy interface
-        $composedCursor = $this->cursor->getCursor();
-        $composedCursor->addOption('$min', ['_id' => $this->currentId]);
-        $composedCursor->limit($itemCountPerPage);
+        $this->cursor->addOption('min', ['_id' => $this->currentId]);
+        $this->cursor->limit($itemCountPerPage);
         return $this->cursor;
     }
 }

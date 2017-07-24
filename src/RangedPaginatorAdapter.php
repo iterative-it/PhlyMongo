@@ -7,46 +7,30 @@
 namespace PhlyMongo;
 
 use MongoCursor;
+use MongoDB\BSON\ObjectID;
+use MongoDB\Collection;
+use MongoDB\Driver\Manager;
 use Zend\Paginator\Adapter\AdapterInterface;
 
-class RangedPaginatorAdapter implements AdapterInterface
+class RangedPaginatorAdapter extends PaginatorAdapter
 {
     /**
-     * @var \MongoCursor
-     */
-    protected $cursor;
-
-    /**
-     * @var mixed|\MongoId
+     * @var mixed|ObjectID
      */
     protected $currentId;
 
-    /**
-     * Creates a range based adapter when using large collections
-     *
-     * Instead of using MongoCursor::skip, which forces the cursor to walk
-     * a ranged based query will start from the current id.
-     *
-     * @param MongoCursor $cursor
-     * @param $currentId
-     */
-    public function __construct(MongoCursor $cursor, $currentId)
+    public function __construct($currentId, Manager $manager, Collection $collection, $filter = [], array $queryOptions = [])
     {
-        $this->cursor    = $cursor;
-        $this->currentId = $currentId;
-    }
+        parent::__construct($manager, $collection, $filter, $queryOptions);
 
-    public function count()
-    {
-        return $this->cursor->count();
+        $this->currentId = $currentId;
     }
 
     public function getItems($offset, $itemCountPerPage)
     {
         //offset is never used in range based
         //kept here to satisfy interface
-        $this->cursor->addOption('$min', ['_id' => $this->currentId]);
-        $this->cursor->limit($itemCountPerPage);
-        return $this->cursor;
+        $queryOptions = array_merge($this->queryOptions, ['min' => ['_id' => $this->currentId], 'limit' => $itemCountPerPage]);
+        return $this->getCursor($queryOptions);
     }
 }

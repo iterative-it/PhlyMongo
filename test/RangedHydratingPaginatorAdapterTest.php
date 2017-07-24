@@ -23,11 +23,6 @@ class RangedHydratingPaginatorAdapterTest extends AbstractTestCase
     protected $hydrator;
 
     /**
-     * @var \MongoCursor
-     */
-    protected $rootCursor;
-
-    /**
      * @var HydratingMongoCursor
      */
     protected $cursor;
@@ -37,14 +32,13 @@ class RangedHydratingPaginatorAdapterTest extends AbstractTestCase
         parent::setUp();
         $this->prototype  = new TestAsset\Foo;
         $this->hydrator   = new ObjectProperty;
-        $this->rootCursor = $this->collection->find();
-        $this->cursor     = new HydratingMongoCursor($this->rootCursor, $this->hydrator, $this->prototype);
+        $this->cursor     = new HydratingMongoCursor($this->hydrator, $this->prototype, $this->manager, $this->collection);
     }
 
     public function testCountReturnsTotalNumberOfItems()
     {
         $adapter    = new HydratingPaginatorAdapter($this->cursor, '');
-        $this->assertEquals($this->rootCursor->count(), $adapter->count());
+        $this->assertEquals(count($this->items), $adapter->count());
         $this->assertGreaterThan(1, $adapter->count());
     }
 

@@ -18,7 +18,7 @@ class HydratingPaginatorAdapterTest extends AbstractTestCase
         parent::setUp();
         $this->prototype  = new TestAsset\Foo;
         $this->hydrator   = new ObjectProperty;
-        $this->cursor     = new HydratingMongoCursor($this->hydrator, $this->prototype, $this->manager, $this->collection, []);
+        $this->cursor     = new HydratingMongoCursor($this->hydrator, $this->prototype, $this->manager, $this->collection);
         $this->adapter    = new HydratingPaginatorAdapter($this->cursor);
     }
 

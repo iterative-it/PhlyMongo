@@ -50,7 +50,7 @@ class HydratingMongoCursor implements Countable, Iterator, HydratingIteratorInte
      * @param $filter
      * @param array $queryOptions
      */
-    public function __construct(HydratorInterface $hydrator, $prototype, Manager $manager, Collection $collection, $filter, array $queryOptions = [])
+    public function __construct(HydratorInterface $hydrator, $prototype, Manager $manager, Collection $collection, $filter = [], array $queryOptions = [])
     {
         $this->setHydrator($hydrator);
         $this->setPrototype($prototype);
@@ -155,6 +155,12 @@ class HydratingMongoCursor implements Countable, Iterator, HydratingIteratorInte
     public function limit($num)
     {
         $this->queryOptions['limit'] = $num;
+        $this->iterator = null;
+    }
+
+    public function addOption($key, $value)
+    {
+        $this->queryOptions[$key] = $value;
         $this->iterator = null;
     }
 

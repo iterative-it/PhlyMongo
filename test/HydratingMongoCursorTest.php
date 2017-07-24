@@ -44,24 +44,24 @@ class HydratingMongoCursorTest extends AbstractTestCase
     public function testConstructorRaisesExceptionOnInvalidPrototype()
     {
         $this->setExpectedException('InvalidArgumentException');
-        $cursor = new HydratingMongoCursor($this->hydrator, [], $this->manager, $this->collection, []);
+        $cursor = new HydratingMongoCursor($this->hydrator, [], $this->manager, $this->collection);
     }
 
     public function tetHydratorIsAccessibleAfterInstantiation()
     {
-        $cursor = new HydratingMongoCursor($this->hydrator, $this->prototype, $this->manager, $this->collection, []);
+        $cursor = new HydratingMongoCursor($this->hydrator, $this->prototype, $this->manager, $this->collection);
         $this->assertSame($this->hydrator, $cursor->getHydrator());
     }
 
     public function tetPrototypeIsAccessibleAfterInstantiation()
     {
-        $cursor = new HydratingMongoCursor($this->hydrator, $this->prototype, $this->manager, $this->collection, []);
+        $cursor = new HydratingMongoCursor($this->hydrator, $this->prototype, $this->manager, $this->collection);
         $this->assertSame($this->prototype, $cursor->getPrototype());
     }
 
     public function testCursorIsCountable()
     {
-        $cursor     = new HydratingMongoCursor($this->hydrator, $this->prototype, $this->manager, $this->collection, []);
+        $cursor     = new HydratingMongoCursor($this->hydrator, $this->prototype, $this->manager, $this->collection);
 
         $rootCount = $this->collection->count();
         $testCount = count($cursor);
@@ -71,7 +71,7 @@ class HydratingMongoCursorTest extends AbstractTestCase
 
     public function testIterationReturnsClonesOfPrototype()
     {
-        $cursor = new HydratingMongoCursor($this->hydrator, $this->prototype, $this->manager, $this->collection, []);
+        $cursor = new HydratingMongoCursor($this->hydrator, $this->prototype, $this->manager, $this->collection);
         foreach ($cursor as $item) {
             $this->assertInstanceOf('PhlyMongoTest\TestAsset\Foo', $item);
             $this->assertInstanceOf(ObjectID::class, $item->_id);

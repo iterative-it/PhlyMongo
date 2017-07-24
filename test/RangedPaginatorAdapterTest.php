@@ -6,41 +6,30 @@
 
 namespace PhlyMongoTest;
 
+use MongoDB\Driver\Cursor;
 use PhlyMongo\RangedPaginatorAdapter;
 
 class RangedPaginatorAdapterTest extends AbstractTestCase
 {
-    /**
-     * @var \MongoCursor
-     */
-    protected $cursor;
-
-    public function setUp()
-    {
-        parent::setUp();
-        $this->cursor  = $this->collection->find();
-
-    }
-
     public function testCountReturnsTotalNumberOfItems()
     {
-        $adapter = new RangedPaginatorAdapter($this->cursor, '');
+        $adapter = new RangedPaginatorAdapter('', $this->manager, $this->collection);
 
-        $this->assertEquals($this->cursor->count(), $adapter->count());
+        $this->assertEquals(count($this->items), $adapter->count());
         $this->assertGreaterThan(1, $adapter->count());
     }
 
     public function testGetItemsReturnsCursor()
     {
-        $adapter = new RangedPaginatorAdapter($this->cursor, 5);
+        $adapter = new RangedPaginatorAdapter(5, $this->manager, $this->collection);
         $test    = $adapter->getItems(5, 5);
-        $this->assertSame($this->cursor, $test);
+        $this->assertInstanceOf(Cursor::class, $test);
     }
 
     public function testIteratingReturnedItemsReturnsProperOffsetAndCount()
     {
         $expected = array_slice($this->items, 5, 5);
-        $adapter  = new RangedPaginatorAdapter($this->cursor, $expected[0]['_id']);
+        $adapter  = new RangedPaginatorAdapter($expected[0]['_id'], $this->manager, $this->collection);
         $items    = $adapter->getItems(5, 5);
         $test     = [];
         foreach ($items as $item) {

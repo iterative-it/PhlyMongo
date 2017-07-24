@@ -6,6 +6,7 @@
 
 namespace PhlyMongoTest;
 
+use MongoDB\Database;
 use PhlyMongo\MongoConnectionFactory;
 use PhlyMongo\MongoDbFactory;
 use PHPUnit_Framework_TestCase as TestCase;
@@ -26,7 +27,7 @@ class MongoDbFactoryTest extends TestCase
     {
         $factory = new MongoDbFactory('test', 'PhlyMongoTest\Mongo');
         $db      = $factory->createService($this->services);
-        $this->assertInstanceOf('MongoDB', $db);
+        $this->assertInstanceOf(Database::class, $db);
         $this->assertEquals('test', (string) $db);
     }
 }

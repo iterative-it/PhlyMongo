@@ -6,6 +6,7 @@
 
 namespace PhlyMongoTest;
 
+use MongoDB\Collection;
 use PhlyMongo\MongoCollectionFactory;
 use PhlyMongo\MongoConnectionFactory;
 use PhlyMongo\MongoDbFactory;
@@ -28,7 +29,7 @@ class MongoCollectionFactoryTest extends TestCase
     {
         $factory    = new MongoCollectionFactory('test', 'PhlyMongoTest\MongoDB');
         $collection = $factory->createService($this->services);
-        $this->assertInstanceOf('MongoCollection', $collection);
-        $this->assertEquals('test', $collection->getName());
+        $this->assertInstanceOf(Collection::class, $collection);
+        $this->assertEquals('test', $collection->getCollectionName());
     }
 }

@@ -6,6 +6,7 @@
 
 namespace PhlyMongoTest;
 
+use MongoDB\Driver\Manager;
 use PhlyMongo\MongoConnectionFactory;
 use PHPUnit_Framework_TestCase as TestCase;
 use Zend\ServiceManager\ServiceManager;
@@ -24,22 +25,13 @@ class MongoConnectionFactoryTest extends TestCase
     {
         $factory = new MongoConnectionFactory();
         $mongo   = $factory->createService($this->services);
-
-        if (class_exists('MongoClient')) {
-            $this->assertInstanceOf('MongoClient', $mongo);
-        } else {
-            $this->assertInstanceOf('Mongo', $mongo);
-        }
+        $this->assertInstanceOf(Manager::class, $mongo);
     }
 
     public function testFactoryWillCreateAMongoInstanceBasedOnParameters()
     {
         $factory = new MongoConnectionFactory('mongodb://localhost:27017', ['connect' => false]);
         $mongo   = $factory->createService($this->services);
-        if (class_exists('MongoClient')) {
-            $this->assertInstanceOf('MongoClient', $mongo);
-        } else {
-            $this->assertInstanceOf('Mongo', $mongo);
-        }
+        $this->assertInstanceOf(Manager::class, $mongo);
     }
 }

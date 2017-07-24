@@ -7,7 +7,6 @@
 namespace PhlyMongoTest;
 
 use MongoDB\BSON\ObjectID;
-use MongoDB\Driver\Query;
 use PhlyMongo\HydratingMongoCursor;
 use Zend\Stdlib\Hydrator\ObjectProperty;
 

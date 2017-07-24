@@ -14,8 +14,8 @@ class MongoConnectionFactoryTest extends TestCase
 {
     public function setUp()
     {
-        if (!extension_loaded('mongo')) {
-            $this->markTestSkipped('The mongo extension is required to run the unit tests');
+        if (!extension_loaded('mongodb')) {
+            $this->markTestSkipped('The mongodb extension is required to run the unit tests');
         }
         $this->services = new ServiceManager();
     }

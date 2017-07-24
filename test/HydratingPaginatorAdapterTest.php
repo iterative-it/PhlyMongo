@@ -6,7 +6,6 @@
 
 namespace PhlyMongoTest;
 
-use MongoDB\Driver\Query;
 use PhlyMongo\HydratingMongoCursor;
 use PhlyMongo\HydratingPaginatorAdapter;
 use Zend\Stdlib\Hydrator\ObjectProperty;

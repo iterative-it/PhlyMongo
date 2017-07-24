@@ -6,24 +6,43 @@
 
 namespace PhlyMongo;
 
-use MongoCollection;
+use MongoDB\Collection;
+use MongoDB\Driver\Manager;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
 class MongoCollectionFactory implements FactoryInterface
 {
-    protected $collectionName;
-    protected $dbService;
+    /**
+     * @var Manager
+     */
+    protected $manager;
 
-    public function __construct($collectionName, $dbService)
+    /**
+     * @var string
+     */
+    protected $databaseName;
+
+    /**
+     * @var string
+     */
+    protected $collectionName;
+
+    /**
+     * MongoCollectionFactory constructor.
+     * @param Manager $manager
+     * @param string $databaseName
+     * @param string $collectionName
+     */
+    public function __construct($manager, $databaseName, $collectionName)
     {
+        $this->manager           = $manager;
+        $this->databaseName      = $databaseName;
         $this->collectionName    = $collectionName;
-        $this->dbService         = $dbService;
     }
 
     public function createService(ServiceLocatorInterface $services)
     {
-        $db = $services->get($this->dbService);
-        return new MongoCollection($db, $this->collectionName);
+        return new Collection($this->manager, $this->databaseName, $this->collectionName);
     }
 }

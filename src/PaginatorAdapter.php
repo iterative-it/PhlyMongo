@@ -7,7 +7,6 @@
 namespace PhlyMongo;
 
 use MongoDB\Collection;
-use MongoDB\Driver\Command;
 use MongoDB\Driver\Manager;
 use MongoDB\Driver\Query;
 use Zend\Paginator\Adapter\AdapterInterface;
@@ -30,16 +29,22 @@ class PaginatorAdapter implements AdapterInterface
     protected $filter;
 
     /**
+     * @var array
+     */
+    private $queryOptions;
+
+    /**
      * PaginatorAdapter constructor.
      * @param Manager $manager
      * @param Collection $collection
      * @param array|object $filter The search filter.
      */
-    public function __construct(Manager $manager, Collection $collection, $filter)
+    public function __construct(Manager $manager, Collection $collection, $filter, array $queryOptions = [])
     {
         $this->manager = $manager;
         $this->collection = $collection;
         $this->filter = $filter;
+        $this->queryOptions = $queryOptions;
     }
 
     public function count()
@@ -49,7 +54,8 @@ class PaginatorAdapter implements AdapterInterface
 
     public function getItems($offset, $itemCountPerPage)
     {
-        $query = new Query($this->filter, ['skip' => $offset, 'limit' => $itemCountPerPage]);
+        $queryOptions = array_merge($this->queryOptions, ['skip' => $offset, 'limit' => $itemCountPerPage]);
+        $query = new Query($this->filter, $queryOptions);
         $cursor = $this->manager->executeQuery($this->collection->getNamespace(), $query);
         $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
         return $cursor;

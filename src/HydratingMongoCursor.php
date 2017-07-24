@@ -9,6 +9,7 @@ namespace PhlyMongo;
 use Countable;
 use InvalidArgumentException;
 use Iterator;
+use MongoDB\Collection;
 use MongoDB\Driver\Manager;
 use MongoDB\Driver\Query;
 use Zend\Hydrator\HydratorInterface;
@@ -21,29 +22,50 @@ class HydratingMongoCursor implements Countable, Iterator, HydratingIteratorInte
      */
     protected $hydrator;
     protected $prototype;
-    protected $count;
-    protected $iterator = null;
+    /**
+     * @var Manager
+     */
+    protected $manager;
+    /**
+     * @var Collection
+     */
+    protected $collection;
+    /**
+     * @var
+     */
+    protected $filter;
+    /**
+     * @var array
+     */
+    protected $queryOptions;
+
+    private $iterator;
 
     /**
      * HydratingMongoCursor constructor.
-     * @param Manager $manager
-     * @param $namespace
-     * @param Query $query
      * @param HydratorInterface $hydrator
      * @param $prototype
+     * @param Manager $manager
+     * @param Collection $collection
+     * @param $filter
+     * @param array $queryOptions
      */
-    public function __construct(Manager $manager, $namespace, Query $query, HydratorInterface $hydrator, $prototype)
+    public function __construct(HydratorInterface $hydrator, $prototype, Manager $manager, Collection $collection, $filter, array $queryOptions = [])
     {
         $this->setHydrator($hydrator);
         $this->setPrototype($prototype);
+        $this->manager = $manager;
+        $this->collection = $collection;
+        $this->filter = $filter;
+        $this->queryOptions = $queryOptions;
+    }
 
-        $cursor = $manager->executeQuery($namespace, $query);
-        $cursor->setTypeMap(['root' => 'array', '__pclass' => get_class($prototype), 'array' => 'array']);
-
-        $array = $cursor->toArray();
-
-        $this->count = count($array);
-        $this->iterator = new \ArrayIterator($array);
+    private function getCursor()
+    {
+        $query = new Query($this->filter, $this->queryOptions);
+        $cursor = $this->manager->executeQuery($this->collection->getNamespace(), $query);
+        $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
+        return $cursor;
     }
 
     public function getPrototype()
@@ -87,12 +109,12 @@ class HydratingMongoCursor implements Countable, Iterator, HydratingIteratorInte
 
     public function count()
     {
-        return $this->count;
+        return $this->collection->count($this->filter);
     }
 
     public function current()
     {
-        $result = $this->iterator->current();
+        $result = $this->getIterator()->current();
         if (!is_array($result)) {
             return $result;
         }
@@ -102,21 +124,45 @@ class HydratingMongoCursor implements Countable, Iterator, HydratingIteratorInte
 
     public function key()
     {
-        return $this->iterator->key();
+        $current = $this->getIterator()->current();
+        return (string) $current['_id'];
     }
 
     public function next()
     {
-        $this->iterator->next();
+        $this->getIterator()->next();
     }
 
     public function rewind()
     {
+        //Re run the query to rewind
+        $cursor = $this->getCursor();
+        $this->iterator = new \IteratorIterator($cursor);
         $this->iterator->rewind();
     }
 
     public function valid()
     {
-        return $this->iterator->valid();
+        return $this->getIterator()->valid();
+    }
+
+    public function skip($num)
+    {
+        $this->queryOptions['skip'] = $num;
+        $this->iterator = null;
+    }
+
+    public function limit($num)
+    {
+        $this->queryOptions['limit'] = $num;
+        $this->iterator = null;
+    }
+
+    private function getIterator()
+    {
+        if ($this->iterator === null) {
+            $this->rewind();
+        }
+        return $this->iterator;
     }
 }

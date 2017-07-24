@@ -35,7 +35,7 @@ class HydratingMongoCursorTest extends AbstractTestCase
                 'author'  => $authors[$authorIndex],
                 'content' => str_repeat($title, $i + 1),
             ];
-            $this->collection->insert($data);
+            $this->collection->insertOne($data);
         }
     }
 
@@ -72,7 +72,7 @@ class HydratingMongoCursorTest extends AbstractTestCase
         $rootCursor = $this->collection->find();
         $cursor     = new HydratingMongoCursor($rootCursor, $this->hydrator, $this->prototype);
 
-        $rootCount = $rootCursor->count();
+        $rootCount = $this->collection->count();
         $testCount = count($cursor);
         $this->assertEquals($rootCount, $testCount, "Expected $rootCount did not match test $testCount");
         $this->assertGreaterThan(0, $testCount);

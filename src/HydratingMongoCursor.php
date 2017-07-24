@@ -9,52 +9,49 @@ namespace PhlyMongo;
 use Countable;
 use InvalidArgumentException;
 use Iterator;
-use MongoCursor;
-use Zend\Stdlib\Hydrator\HydratorInterface;
+use MongoDB\Driver\Manager;
+use MongoDB\Driver\Query;
+use Zend\Hydrator\HydratorInterface;
+use Zend\Hydrator\Iterator\HydratingIteratorInterface;
 
-class HydratingMongoCursor implements Countable, Iterator
+class HydratingMongoCursor implements Countable, Iterator, HydratingIteratorInterface
 {
-    protected $cursor;
+    private $count;
+    private $iterator = null;
+
+    /**
+     * @var HydratorInterface
+     */
     protected $hydrator;
     protected $prototype;
 
-    public function __construct(MongoCursor $cursor, HydratorInterface $hydrator, $prototype)
+    /**
+     * HydratingMongoCursor constructor.
+     * @param Manager $manager
+     * @param string $namespace
+     * @param Query $query
+     * @param HydratorInterface $hydrator
+     * @param $prototype
+     */
+    public function __construct(Manager $manager, $namespace, Query $query, HydratorInterface $hydrator, $prototype)
     {
-        $this->cursor   = $cursor;
-        $this->hydrator = $hydrator;
+        $this->setHydrator($hydrator);
+        $this->setPrototype($prototype);
 
-        if (!is_object($prototype)) {
-            throw new InvalidArgumentException(sprintf(
-                'Prototype must be an object; received "%s"',
-                gettype($prototype)
-            ));
-        }
-        $this->prototype = $prototype;
-    }
-
-    public function getCursor()
-    {
-        return $this->cursor;
-    }
-
-    public function getHydrator()
-    {
-        return $this->hydrator;
-    }
-
-    public function getPrototype()
-    {
-        return $this->prototype;
+        $cursor = $manager->executeQuery($namespace, $query);
+        $array = $cursor->toArray();
+        $this->count = count($array);
+        $this->iterator = new \ArrayIterator($array);
     }
 
     public function count()
     {
-        return $this->cursor->count();
+        return $this->count();
     }
 
     public function current()
     {
-        $result = $this->cursor->current();
+        $result = $this->iterator->current();
         if (!is_array($result)) {
             return $result;
         }
@@ -64,21 +61,60 @@ class HydratingMongoCursor implements Countable, Iterator
 
     public function key()
     {
-        return $this->cursor->key();
+        return $this->iterator->key();
     }
 
     public function next()
     {
-        return $this->cursor->next();
+        $this->iterator->next();
     }
 
     public function rewind()
     {
-        return $this->cursor->rewind();
+        $this->iterator->rewind();
     }
 
     public function valid()
     {
-        return $this->cursor->valid();
+        return $this->iterator->valid();
+    }
+
+    public function getPrototype()
+    {
+        return $this->prototype;
+    }
+
+    /**
+     * This sets the prototype to hydrate.
+     *
+     * This prototype can be the name of the class or the object itself;
+     * iteration will clone the object.
+     *
+     * @param string|object $prototype
+     */
+    public function setPrototype($prototype)
+    {
+        if (!is_object($prototype)) {
+            throw new InvalidArgumentException(sprintf(
+                'Prototype must be an object; received "%s"',
+                gettype($prototype)
+            ));
+        }
+        $this->prototype = $prototype;
+    }
+
+    public function getHydrator()
+    {
+        return $this->hydrator;
+    }
+
+    /**
+     * Sets the hydrator to use during iteration.
+     *
+     * @param HydratorInterface $hydrator
+     */
+    public function setHydrator(HydratorInterface $hydrator)
+    {
+        $this->hydrator = $hydrator;
     }
 }
